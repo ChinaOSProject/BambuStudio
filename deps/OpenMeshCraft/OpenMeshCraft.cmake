@@ -17,7 +17,7 @@
 # (eigen / parallel-hashmap / oneTBB) and vendors {fmt} for GCC9 / old Apple libc++.
 # Linux/mac/AVX compatibility lives in the fetched OpenMeshCraft zip
 # (bambulab/OpenMeshCraft @0e8d12c3, merged PR #2 OMC::format);
-# do not mutate unzipped .h/.cpp here.
+# Apply Debian 10 standard library compatibility changes through a separate patch.
 
 set(_OMC_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(_OMC_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/omc_gen")
@@ -268,8 +268,13 @@ bambustudio_add_cmake_project(OpenMeshCraft
     -DOMC_SOURCE_DIR=<SOURCE_DIR>
     -P ${_OMC_GEN_DIR}/prepare_source.cmake
   COMMAND ${CMAKE_COMMAND} -E copy
+    ${_OMC_DIR}/shewchuk-predicates-CMakeLists.txt
+    <SOURCE_DIR>/external/shewchuk-predicates/CMakeLists.txt
+  COMMAND ${CMAKE_COMMAND} -E copy
     ${_OMC_DIR}/CMakeLists.txt.in
     <SOURCE_DIR>/CMakeLists.txt
+  COMMAND git apply --ignore-space-change
+    ${_OMC_DIR}/0001-reduce-compat.patch
   COMMAND ${CMAKE_COMMAND} -E copy
     ${_OMC_GEN_DIR}/external_CMakeLists.txt
     <SOURCE_DIR>/external/CMakeLists.txt

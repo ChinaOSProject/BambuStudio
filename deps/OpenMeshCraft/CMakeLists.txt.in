@@ -61,6 +61,10 @@ endif()
 # Studio TBB::tbb PUBLIC-links Threads::Threads; find it project-wide.
 find_package(Threads REQUIRED)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9")
+  add_compile_definitions(OMC_UNUSED=)
+endif()
+
 add_subdirectory(external)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
