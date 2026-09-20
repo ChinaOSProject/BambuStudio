@@ -1,0 +1,13 @@
+diff --git a/src/OpenMeshCraft/BVH/AABB/Static/SAABBTree.inl b/src/OpenMeshCraft/BVH/AABB/Static/SAABBTree.inl
+--- a/src/OpenMeshCraft/BVH/AABB/Static/SAABBTree.inl
++++ b/src/OpenMeshCraft/BVH/AABB/Static/SAABBTree.inl
+@@ -292,5 +292,9 @@
++#if defined(__cpp_lib_parallel_algorithm) && __cpp_lib_parallel_algorithm >= 201603L
+   if (parallel)
+     cur_node.bbox() = std::reduce(OMC_IF_EXEC(std::execution::par_unseq)
+                                     first + 1, beyond, init_box, ReduceOp(this));
+   else
+     cur_node.bbox() = std::reduce(first + 1, beyond, init_box, ReduceOp(this));
++#else
++  cur_node.bbox() = std::accumulate(first + 1, beyond, init_box, ReduceOp(this));
++#endif
