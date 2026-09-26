@@ -10,6 +10,23 @@ if (BINARY_DIR_REL)
     set(OPENVDB_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_OpenVDB-prefix/src/dep_OpenVDB)
 endif ()
 
+find_path(_OPENVDB_BOOST_INCLUDE_DIR
+    NAMES boost/version.hpp
+    PATHS ${CMAKE_INCLUDE_PATH} ${CMAKE_PREFIX_PATH}
+    PATH_SUFFIXES include
+)
+find_library(_OPENVDB_BOOST_IOSTREAMS_LIBRARY
+    NAMES boost_iostreams
+    PATHS ${CMAKE_LIBRARY_PATH} ${CMAKE_PREFIX_PATH}
+    PATH_SUFFIXES lib/${CMAKE_LIBRARY_ARCHITECTURE} lib
+)
+if(NOT _OPENVDB_BOOST_INCLUDE_DIR OR NOT _OPENVDB_BOOST_IOSTREAMS_LIBRARY)
+    message(FATAL_ERROR "OpenVDB requires the target Boost headers and iostreams library.")
+endif()
+get_filename_component(_OPENVDB_BOOST_LIBRARY_DIR
+    "${_OPENVDB_BOOST_IOSTREAMS_LIBRARY}" DIRECTORY
+)
+
 set (_openvdb_vdbprint ON)
 #if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     # Build fails on raspberry pi due to missing link directive to latomic
@@ -33,6 +50,9 @@ bambustudio_add_cmake_project(OpenVDB
         -DTBB_STATIC=${_build_static}
         -DOPENVDB_BUILD_VDB_PRINT=${_openvdb_vdbprint}
         -DDISABLE_DEPENDENCY_VERSION_CHECKS=ON # Centos6 has old zlib
+        -DBoost_NO_BOOST_CMAKE=ON
+        -DBoost_INCLUDE_DIR:PATH=${_OPENVDB_BOOST_INCLUDE_DIR}
+        -DBOOST_LIBRARYDIR:PATH=${_OPENVDB_BOOST_LIBRARY_DIR}
 )
 
 if (MSVC)
