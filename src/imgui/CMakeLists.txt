@@ -18,5 +18,5 @@ add_library(imgui STATIC
 )
 
 if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
+    target_link_libraries(imgui PUBLIC boost_headeronly Boost::log)
 endif()

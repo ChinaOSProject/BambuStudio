@@ -311,6 +311,14 @@ if(NOT TBB_FOUND)
     endif()
   endif()
 
+  if(TBB_FOUND AND TBB_tbbmalloc_FOUND AND NOT TARGET TBB::tbbmalloc)
+    add_library(TBB::tbbmalloc UNKNOWN IMPORTED)
+    set_target_properties(TBB::tbbmalloc PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${TBB_INCLUDE_DIRS}"
+      IMPORTED_LOCATION "${TBB_tbbmalloc_LIBRARY}"
+    )
+  endif()
+
   mark_as_advanced(TBB_INCLUDE_DIRS TBB_LIBRARIES)
 
   unset(TBB_ARCHITECTURE)

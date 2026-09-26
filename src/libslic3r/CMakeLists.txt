@@ -550,7 +550,17 @@ add_library(libslic3r_cgal STATIC
     MeshBoolean.hpp MeshBoolean.cpp
     TryCatchSignal.hpp TryCatchSignal.cpp
     Triangulation.hpp Triangulation.cpp)
-target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+find_path(_SLIC3R_TBB_INCLUDE_DIR NAMES tbb/tbb.h
+    PATHS ${CMAKE_PREFIX_PATH}
+    PATH_SUFFIXES include
+    NO_DEFAULT_PATH)
+if(_SLIC3R_TBB_INCLUDE_DIR)
+    target_include_directories(libslic3r BEFORE PUBLIC "${_SLIC3R_TBB_INCLUDE_DIR}")
+    target_include_directories(libslic3r_cgal BEFORE PRIVATE "${_SLIC3R_TBB_INCLUDE_DIR}")
+endif()
+set_property(TARGET libslic3r PROPERTY NO_SYSTEM_FROM_IMPORTED TRUE)
+set_property(TARGET libslic3r_cgal PROPERTY NO_SYSTEM_FROM_IMPORTED TRUE)
+target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options
 # (-frounding-math) still propagate to dependent libs which is not desired.
@@ -575,7 +585,13 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
     set_property(TARGET libslic3r_cgal PROPERTY CXX_EXTENSIONS OFF)
 endif()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
+target_link_libraries(libslic3r_cgal PRIVATE
+    ${_cgal_tgt}
+    libigl
+    mcut
+    boost_headeronly
+    Boost::log
+)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
