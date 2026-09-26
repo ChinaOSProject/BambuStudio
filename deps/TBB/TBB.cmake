@@ -2,7 +2,7 @@ bambustudio_add_cmake_project(
     TBB
     URL "https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2021.5.0.zip"
     URL_HASH SHA256=83ea786c964a384dd72534f9854b419716f412f9d43c0be88d41874763e7bb47
-    #PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-TBB-GCC13.patch
+    PATCH_COMMAND patch -p1 --forward -i ${CMAKE_CURRENT_LIST_DIR}/0002-LoongArch-disable-ITT.patch
     CMAKE_ARGS          
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         -DTBB_BUILD_SHARED=OFF
