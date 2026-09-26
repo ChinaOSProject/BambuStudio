@@ -302,6 +302,13 @@ if(APPLE)
     -DOMC_CMAKE_ENABLE_AVX2=OFF
     -DOMC_CMAKE_ENABLE_FMA=OFF
   )
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(loongarch64|loong64)$")
+  set(_OMC_SIMD_ARGS
+    -DOMC_CMAKE_ENABLE_SSE2=OFF
+    -DOMC_CMAKE_ENABLE_AVX=OFF
+    -DOMC_CMAKE_ENABLE_AVX2=OFF
+    -DOMC_CMAKE_ENABLE_FMA=OFF
+  )
 endif()
 
 # MSVC has std::format; GCC 9 / older Apple libc++ use vendored {fmt}.
