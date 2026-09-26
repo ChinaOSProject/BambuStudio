@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:loongarch64": "tsc -b && BAMBU_STUDIO_LOONGARCH_BUILD=1 vite build --configLoader runner",
     "lint": "eslint .",
     "preview": "vite preview",
     "i18n": "npx i18next-parser --config i18next-parser.config.js"
@@ -47,10 +48,17 @@
     "lightningcss-win32-x64-msvc": "^1.32.0"
   },
   "pnpm": {
+    "supportedArchitectures": {
+      "os": ["current", "wasi"],
+      "cpu": ["current", "wasm32"]
+    },
     "overrides": {
       "undici": "7.28.0",
       "js-yaml": "4.2.0",
-      "@babel/core": "7.29.6"
+      "@babel/core": "7.29.6",
+      "rollup": "npm:@rollup/wasm-node@4.41.1",
+      "esbuild": "npm:esbuild-wasm@0.28.2",
+      "lightningcss": "npm:lightningcss-wasm@1.30.1"
     }
   }
 }

@@ -54,6 +54,11 @@ function(prepare_node_env)
             set(PNPM_URL "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-arm64")
             set(PNPM_EXEC_NAME "pnpm")
             set(PNPM_HASH "c2f9e9d42d81f9f40a0f895513d014a08d5ecb0abc9e15c426ecfde6f492706b")
+        elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(loongarch64|loong64)$")
+            set(NODE_VERSION "20.20.2")
+            set(NODE_BIN_DIR "node-v${NODE_VERSION}-linux-loongarch64/bin")
+            set(NODE_EXEC "node")
+            set(PNPM_EXEC_NAME "pnpm")
         else()
             set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz")
             set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-linux-x64.tar.xz")
@@ -192,7 +197,8 @@ else()
 endif()
 
 set(PNPM_STORE_DIR "${CMAKE_CURRENT_BINARY_DIR}/.pnpm-store")
-file(MAKE_DIRECTORY "${PNPM_STORE_DIR}")
+set(DEVICE_PAGE_TMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/tmp")
+file(MAKE_DIRECTORY "${PNPM_STORE_DIR}" "${DEVICE_PAGE_TMP_DIR}")
 
 set(DEVICE_PAGE_BUILD_STAMP "${CMAKE_CURRENT_BINARY_DIR}/device_page.stamp")
 
@@ -221,12 +227,21 @@ set(DEVICE_PAGE_BUILD_INPUTS
     "${DEVICE_PAGE_SRC_DIR}/i18next-parser.config.js"
 )
 
+set(DEVICE_PAGE_PNPM_INSTALL_OPTIONS)
+set(DEVICE_PAGE_PNPM_BUILD_SCRIPT build)
+set(DEVICE_PAGE_PNPM_BUILD_ENV)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(loongarch64|loong64)$")
+    list(APPEND DEVICE_PAGE_PNPM_INSTALL_OPTIONS --ignore-scripts --frozen-lockfile)
+    set(DEVICE_PAGE_PNPM_BUILD_SCRIPT build:loongarch64)
+    list(APPEND DEVICE_PAGE_PNPM_BUILD_ENV "NAPI_RS_FORCE_WASI=1")
+endif()
+
 add_custom_command(
     OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
     COMMAND echo "Running PNPM install"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} install --store-dir ${PNPM_STORE_DIR}
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "TMPDIR=${DEVICE_PAGE_TMP_DIR}" ${PNPM_EXECUTABLE} install ${DEVICE_PAGE_PNPM_INSTALL_OPTIONS} --store-dir ${PNPM_STORE_DIR}
     COMMAND echo "Running PNPM run build"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} run build
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "TMPDIR=${DEVICE_PAGE_TMP_DIR}" ${DEVICE_PAGE_PNPM_BUILD_ENV} ${PNPM_EXECUTABLE} run ${DEVICE_PAGE_PNPM_BUILD_SCRIPT}
     COMMAND echo "Removing page target directory"
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_TARGET_DIR}"
     COMMAND echo "Creating page target directory"
