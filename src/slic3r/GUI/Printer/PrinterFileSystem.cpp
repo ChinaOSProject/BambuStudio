@@ -344,7 +344,7 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
                 download->ofs.open(download->local_path, std::ios::binary);
                 if (!download->ofs) {
                     download->error = last_system_error();
-                    BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam open error:" << wxString::FromUTF8(download->error);
+                    BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam open error:" << wxString::FromUTF8(download->error.c_str());
                     return FILE_OPEN_ERR;
                 }
             }
@@ -352,7 +352,7 @@ void PrinterFileSystem::DownloadRamFile(int index, const std::string &local_path
             download->ofs.write(reinterpret_cast<const char *>(data), size);
             if (!download->ofs) {
                 download->error = last_system_error();
-                BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam write error: " << wxString::FromUTF8(download->error);
+                BOOST_LOG_TRIVIAL(info) << "DownloadImageFromRam write error: " << wxString::FromUTF8(download->error.c_str());
                 return FILE_READ_WRITE_ERR;
             }
 
@@ -836,7 +836,7 @@ void PrinterFileSystem::DownloadNextFile()
                 download->ofs.open(download->local_path, std::ios::binary);
                 if (!download->ofs) {
                     download->error = last_system_error();
-                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile open error: " << wxString::FromUTF8(download->error);
+                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile open error: " << wxString::FromUTF8(download->error.c_str());
                     return FILE_OPEN_ERR;
                 }
             }
@@ -847,7 +847,7 @@ void PrinterFileSystem::DownloadNextFile()
             download->ofs.write((char const *) data, size);
             if (!download->ofs) {
                 download->error = last_system_error();
-                BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile write error: " << wxString::FromUTF8(download->error);
+                BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::DownloadNextFile write error: " << wxString::FromUTF8(download->error.c_str());
                 return FILE_READ_WRITE_ERR;
             }
             download->boost_md5.process_bytes(data, size);
@@ -1199,7 +1199,7 @@ struct CallbackEvent : wxCommandEvent
 
 void PrinterFileSystem::PostCallback(std::function<void(void)> const& callback)
 {
-    wxCommandEvent *e = new CallbackEvent(callback, boost::weak_ptr(shared_from_this()));
+    wxCommandEvent *e = new CallbackEvent(callback, boost::weak_ptr<PrinterFileSystem>(shared_from_this()));
     wxQueueEvent(this, e);
 }
 
@@ -1580,7 +1580,7 @@ void PrinterFileSystem::RecvMessageThread()
             // OutputDebugStringA("\n");
 
 #if !BBL_RELEASE_TO_PUBLIC
-            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::SendRequest >>>:" << wxString::FromUTF8(msg);
+            BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::SendRequest >>>:" << wxString::FromUTF8(msg.c_str());
 #endif
             l.unlock();
             int n = Bambu_SendMessage(m_session.tunnel, CTRL_TYPE, msg.c_str(), msg.length());
@@ -1623,7 +1623,7 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
     // OutputDebugStringA("\n");
 
 #if !BBL_RELEASE_TO_PUBLIC
-    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::HandleResponse <<<: \n" << wxString::FromUTF8(msg);
+    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::HandleResponse <<<: \n" << wxString::FromUTF8(msg.c_str());
 #endif
 
     std::istringstream iss(msg);

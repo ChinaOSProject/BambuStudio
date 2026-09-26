@@ -4244,7 +4244,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                 float angle = float(atan2(double(cross), double(dot)));
                 float sin_theta_2 = sqrt((1.0f - cos(angle)) * 0.5f);
                 float r = sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y])) * 0.5 / sin_theta_2;
-                curr.feedrate = std::min(curr.feedrate, sqrt(acceleration * r));
+                curr.feedrate = std::min(curr.feedrate, static_cast<float>(sqrt(acceleration * r)));
             }
         }
 
@@ -4641,7 +4641,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
                 float sin_theta_2 = sqrt((1.0f - cos(angle)) * 0.5f);
                 float r = sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y])) * 0.5 / sin_theta_2;
                 float acc = get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
-                curr.feedrate = std::min(curr.feedrate, sqrt(acc * r));
+                curr.feedrate = std::min(curr.feedrate, static_cast<float>(sqrt(acc * r)));
             }
         }
 

@@ -12,7 +12,6 @@
 #include <wx/timer.h>
 #include <chrono>
 #include <wx/gbsizer.h>
-#include <wx/webrequest.h>
 #include <wx/hyperlink.h>
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/RadioBox.hpp"

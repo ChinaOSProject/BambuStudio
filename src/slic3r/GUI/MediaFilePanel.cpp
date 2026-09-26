@@ -333,7 +333,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
         fs->Attached();
         m_image_grid->SetFileSystem(fs);
         m_image_grid->SetFileType(m_last_type, m_external ? "" : "internal");
-        fs->Bind(EVT_FILE_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+        fs->Bind(EVT_FILE_CHANGED, [this, wfs = boost::weak_ptr<PrinterFileSystem>(fs)](auto &e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
@@ -353,7 +353,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
                fs->ListAllFiles();
             }
         });
-        fs->Bind(EVT_SELECT_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+        fs->Bind(EVT_SELECT_CHANGED, [this, wfs = boost::weak_ptr<PrinterFileSystem>(fs)](auto &e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
@@ -362,7 +362,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
             m_button_download->Enable(e.GetInt() > 0);
         });
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
-        fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto& e) {
+        fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr<PrinterFileSystem>(fs)](auto& e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
@@ -400,7 +400,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
             if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
             if (e.GetInt() == PrinterFileSystem::Initializing)
-                fetchUrl(boost::weak_ptr(fs));
+                fetchUrl(boost::weak_ptr<PrinterFileSystem>(fs));
 
             if ((status == PrinterFileSystem::Failed && m_last_errors.find(err) == m_last_errors.end()) ||
                 status == PrinterFileSystem::ListReady) {
@@ -422,7 +422,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
                 m_last_errors.insert(fs->GetLastError());
             }
         });
-        fs->Bind(EVT_DOWNLOAD, [this, wfs = boost::weak_ptr(fs)](auto& e) {
+        fs->Bind(EVT_DOWNLOAD, [this, wfs = boost::weak_ptr<PrinterFileSystem>(fs)](auto& e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled

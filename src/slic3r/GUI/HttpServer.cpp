@@ -257,7 +257,8 @@ static bool is_http_scheme(const std::string& url)
 
 static HttpReqType parse_request_type(const boost::beast::http::request<boost::beast::http::string_body>& req)
 {
-    std::string target = req.target();
+    const auto target_view = req.target();
+    std::string target(target_view.data(), target_view.size());
     if (boost::starts_with(target, "/refresh_token")) {
         return HttpReqType::RefreshToken;
     }
@@ -268,7 +269,8 @@ static HttpReqType parse_request_type(const boost::beast::http::request<boost::b
 static std::optional<LoginParams>
 parse_login_params(const boost::beast::http::request<boost::beast::http::string_body>& req)
 {
-    std::string target = req.target(); // "/path?ticket=...&redirect_url=..."
+    const auto target_view = req.target();
+    std::string target(target_view.data(), target_view.size()); // "/path?ticket=...&redirect_url=..."
 
     size_t qpos = target.find('?');
     if (qpos == std::string::npos) {
@@ -440,7 +442,8 @@ void session::handle_refresh_token()
     } out;
     std::string dkey;
 
-    std::string target = req_.target(); // "/refresh_token?device=...&dev_ver=...&channel=..."
+    const auto target_view = req_.target();
+    std::string target(target_view.data(), target_view.size()); // "/refresh_token?device=...&dev_ver=...&channel=..."
     size_t qpos = target.find('?');
     if (qpos == std::string::npos) {
         BOOST_LOG_TRIVIAL(info) << "refresh token: invalid format";

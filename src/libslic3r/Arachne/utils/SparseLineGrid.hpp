@@ -62,9 +62,8 @@ template<class ElemT, class Locator> void SparseLineGrid<ElemT, Locator>::insert
         m_grid->emplace(grid_loc, elem);
         return true;
     };
-    using namespace std::placeholders; // for _1, _2, _3...
     GridMap                             *m_grid = &(this->m_grid);
-    std::function<bool(const GridPoint)> process_cell_func(std::bind(process_cell_func_, m_grid, _1));
+    std::function<bool(const GridPoint)> process_cell_func(std::bind(process_cell_func_, m_grid, std::placeholders::_1));
 
     SparseGrid<ElemT>::processLineCells(line, process_cell_func);
 }

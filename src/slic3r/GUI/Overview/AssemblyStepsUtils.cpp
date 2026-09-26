@@ -37,7 +37,11 @@
 #include <unordered_set>
 #include <type_traits>
 
+#if __has_include(<hpdf/hpdf.h>)
 #include <hpdf/hpdf.h>
+#else
+#include <hpdf.h>
+#endif
 
 #include <GL/glew.h>
 #include <wx/glcanvas.h>
