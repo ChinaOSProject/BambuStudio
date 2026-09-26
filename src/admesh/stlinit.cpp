@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <cmath>
 #include <assert.h>
 
 #include <boost/log/trivial.hpp>
@@ -319,7 +320,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 		// Write the facet into memory if none of facet vertices is NAN.
 		bool someone_is_nan = false;
 		for (size_t j = 0; j < 3; ++j) {
-			if (isnan(facet.vertex[j](0)) || isnan(facet.vertex[j](1)) || isnan(facet.vertex[j](2))) {
+			if (std::isnan(facet.vertex[j](0)) || std::isnan(facet.vertex[j](1)) || std::isnan(facet.vertex[j](2))) {
 				someone_is_nan = true;
 				break;
 			}

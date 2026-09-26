@@ -33,7 +33,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/system/detail/error_code.hpp>
+#include <boost/system/error_code.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>

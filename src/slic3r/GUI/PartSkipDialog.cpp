@@ -524,7 +524,7 @@ void PartSkipDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 void PartSkipDialog::OnFileSystemEvent(wxCommandEvent &e)
 {
     e.Skip();
-    auto              wfs = boost::weak_ptr(m_file_sys);
+    boost::weak_ptr<PrinterFileSystem> wfs(m_file_sys);
     boost::shared_ptr fs(wfs.lock());
     if (!fs) return;
 
@@ -558,7 +558,7 @@ void PartSkipDialog::OnFileSystemEvent(wxCommandEvent &e)
         CallAfter([=] {
             boost::shared_ptr fs(wfs.lock());
             if (!fs) return;
-            fetchUrl(boost::weak_ptr(fs));
+            fetchUrl(boost::weak_ptr<PrinterFileSystem>(fs));
             BOOST_LOG_TRIVIAL(info) << "part skip: fetch url, get parts info files from printer.";
         });
     }

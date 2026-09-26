@@ -7,7 +7,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cstdio.hpp>
-#include <boost/system/detail/error_code.hpp>
+#include <boost/system/error_code.hpp>
 #include <unordered_set>
 
 #ifdef __WXGTK2__

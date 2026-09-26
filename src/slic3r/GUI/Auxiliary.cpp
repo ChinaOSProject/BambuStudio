@@ -949,7 +949,8 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
            
 
             boost::system::error_code ec;
-            if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec)) continue;
+            fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec);
+            if (ec) continue;
             Slic3r::put_other_changes();
 
             // add in file list

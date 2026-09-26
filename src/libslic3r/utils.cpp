@@ -964,7 +964,7 @@ bool copy_framework(const std::string &from, const std::string &to)
             } else if (boost::filesystem::is_directory(entry)) {
                 copy_framework(it->path().string(), dest_path.string());
             } else {
-                boost::filesystem::copy(entry, dest_path, boost::filesystem::copy_options::overwrite_existing);
+                boost::filesystem::copy_file(entry, dest_path, boost::filesystem::copy_option::overwrite_if_exists);
             }
         }
         return true;
