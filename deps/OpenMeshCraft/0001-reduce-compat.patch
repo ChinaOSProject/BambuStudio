@@ -11,3 +11,9 @@ diff --git a/src/OpenMeshCraft/BVH/AABB/Static/SAABBTree.inl b/src/OpenMeshCraft
 +#else
 +  cur_node.bbox() = std::accumulate(first + 1, beyond, init_box, ReduceOp(this));
 +#endif
+diff --git a/cmake/OpenMeshCraft_ConfigureDeps.cmake b/cmake/OpenMeshCraft_ConfigureDeps.cmake
+--- a/cmake/OpenMeshCraft_ConfigureDeps.cmake
++++ b/cmake/OpenMeshCraft_ConfigureDeps.cmake
+@@ -47 +47 @@
+-  find_package(Boost 1.78.0 CONFIG REQUIRED
++  find_package(Boost 1.71.0 CONFIG REQUIRED

@@ -29,6 +29,8 @@ cmake_minimum_required(VERSION 3.13)
 if(NOT DEFINED OMC_SOURCE_DIR)
   message(FATAL_ERROR "OMC_SOURCE_DIR must be set")
 endif()
+set(CMAKE_INCLUDE_PATH "$ENV{CMAKE_INCLUDE_PATH}")
+set(CMAKE_LIBRARY_PATH "$ENV{CMAKE_LIBRARY_PATH}")
 
 function(omc_fetch_zip url sha256 out_dir strip_prefix marker_file)
   if(EXISTS "${out_dir}/${marker_file}")
@@ -65,24 +67,37 @@ function(omc_fetch_zip url sha256 out_dir strip_prefix marker_file)
 endfunction()
 
 # Zip only has empty submodule placeholders for these; never pull CGAL.
-omc_fetch_zip(
-  "https://gitlab.com/libeigen/eigen/-/archive/68f4e58cfacc686583d16cff90361f0b43bc2c1b/eigen-68f4e58cfacc686583d16cff90361f0b43bc2c1b.zip"
-  "41D12F1FC8E18606F39312681C6E1B957A4746ED97676C576E23E73554C6A662"
-  "${OMC_SOURCE_DIR}/external/eigen"
-  "eigen-68f4e58cfacc686583d16cff90361f0b43bc2c1b"
-  "CMakeLists.txt")
+find_path(OMC_STUDIO_EIGEN_INCLUDE_DIR NAMES Eigen/Core PATH_SUFFIXES eigen3)
+if(NOT OMC_STUDIO_EIGEN_INCLUDE_DIR)
+  omc_fetch_zip(
+    "https://gitlab.com/libeigen/eigen/-/archive/68f4e58cfacc686583d16cff90361f0b43bc2c1b/eigen-68f4e58cfacc686583d16cff90361f0b43bc2c1b.zip"
+    "41D12F1FC8E18606F39312681C6E1B957A4746ED97676C576E23E73554C6A662"
+    "${OMC_SOURCE_DIR}/external/eigen"
+    "eigen-68f4e58cfacc686583d16cff90361f0b43bc2c1b"
+    "CMakeLists.txt")
+else()
+  message(STATUS "[OpenMeshCraft] Using Eigen headers at ${OMC_STUDIO_EIGEN_INCLUDE_DIR}")
+endif()
 omc_fetch_zip(
   "https://github.com/greg7mdp/parallel-hashmap/archive/154c63489e84d5569d3b466342a2ae8fd99e4734.zip"
   "29D0C510018D9BDAA5FBECAF95C2EAA616027D568E4A631D363B27620DE4E07B"
   "${OMC_SOURCE_DIR}/external/parallel-hashmap"
   "parallel-hashmap-154c63489e84d5569d3b466342a2ae8fd99e4734"
   "CMakeLists.txt")
-omc_fetch_zip(
-  "https://github.com/oneapi-src/oneTBB/archive/d75ea937f7e480bd7775d7dab224e0b38451bb40.zip"
-  "FE22388FB9435DCEFA66C8189D4A8FBD8D968FDA3A3DC4F578F78A3DD201C68E"
-  "${OMC_SOURCE_DIR}/external/oneTBB"
-  "oneTBB-d75ea937f7e480bd7775d7dab224e0b38451bb40"
-  "CMakeLists.txt")
+set(CMAKE_FIND_LIBRARY_PREFIXES "lib")
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
+find_path(OMC_STUDIO_TBB_INCLUDE_DIR NAMES tbb/tbb.h)
+find_library(OMC_STUDIO_TBB_LIBRARY NAMES tbb)
+if(NOT OMC_STUDIO_TBB_INCLUDE_DIR OR NOT OMC_STUDIO_TBB_LIBRARY)
+  omc_fetch_zip(
+    "https://github.com/oneapi-src/oneTBB/archive/d75ea937f7e480bd7775d7dab224e0b38451bb40.zip"
+    "FE22388FB9435DCEFA66C8189D4A8FBD8D968FDA3A3DC4F578F78A3DD201C68E"
+    "${OMC_SOURCE_DIR}/external/oneTBB"
+    "oneTBB-d75ea937f7e480bd7775d7dab224e0b38451bb40"
+    "CMakeLists.txt")
+else()
+  message(STATUS "[OpenMeshCraft] Using TBB at ${OMC_STUDIO_TBB_LIBRARY}")
+endif()
 
 # Header-only {fmt} 10.2.1. OpenMeshCraft ConfigureFmt.cmake uses external/fmt
 # when present and sets FMT_CONSTEVAL=; do not patch fmt headers here.
@@ -170,9 +185,13 @@ if(OMC_BUILD_TEST)
 endif()
 
 if(NOT TARGET Eigen3)
+  find_path(OMC_STUDIO_EIGEN_INCLUDE_DIR NAMES Eigen/Core PATH_SUFFIXES eigen3)
+  if(NOT OMC_STUDIO_EIGEN_INCLUDE_DIR)
+    set(OMC_STUDIO_EIGEN_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eigen")
+  endif()
   add_library(Eigen3 INTERFACE IMPORTED GLOBAL)
   set_target_properties(Eigen3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/eigen")
+    INTERFACE_INCLUDE_DIRECTORIES "${OMC_STUDIO_EIGEN_INCLUDE_DIR}")
 endif()
 
 if(OMC_BUILD_TEST)
@@ -239,6 +258,42 @@ if(MPFR_PKG)
   list(APPEND _OMC_DEPENDS ${MPFR_PKG})
 endif()
 
+set(_OMC_CMAKE_ARGS)
+find_path(_OMC_EIGEN_INCLUDE_DIR NAMES Eigen/Core
+  PATHS ${CMAKE_INCLUDE_PATH}
+  PATH_SUFFIXES eigen3)
+if(_OMC_EIGEN_INCLUDE_DIR)
+  list(APPEND _OMC_CMAKE_ARGS
+    "-DOMC_STUDIO_EIGEN_INCLUDE_DIR:PATH=${_OMC_EIGEN_INCLUDE_DIR}")
+endif()
+
+if(NOT BOOST_PKG)
+  find_package(Boost 1.71 CONFIG REQUIRED)
+  list(APPEND _OMC_CMAKE_ARGS "-DBoost_DIR:PATH=${Boost_DIR}")
+endif()
+
+if(NOT GMP_PKG)
+  find_path(_OMC_GMP_INCLUDE_DIR NAMES gmp.h PATHS ${CMAKE_INCLUDE_PATH})
+  find_library(_OMC_GMP_LIBRARY NAMES gmp PATHS ${CMAKE_LIBRARY_PATH})
+  if(NOT _OMC_GMP_INCLUDE_DIR OR NOT _OMC_GMP_LIBRARY)
+    message(FATAL_ERROR "OpenMeshCraft requires the target GMP development package.")
+  endif()
+  list(APPEND _OMC_CMAKE_ARGS
+    "-DOMC_STUDIO_GMP_INCLUDE_DIR:PATH=${_OMC_GMP_INCLUDE_DIR}"
+    "-DOMC_STUDIO_GMP_LIBRARY:FILEPATH=${_OMC_GMP_LIBRARY}")
+endif()
+
+if(NOT MPFR_PKG)
+  find_path(_OMC_MPFR_INCLUDE_DIR NAMES mpfr.h PATHS ${CMAKE_INCLUDE_PATH})
+  find_library(_OMC_MPFR_LIBRARY NAMES mpfr PATHS ${CMAKE_LIBRARY_PATH})
+  if(NOT _OMC_MPFR_INCLUDE_DIR OR NOT _OMC_MPFR_LIBRARY)
+    message(FATAL_ERROR "OpenMeshCraft requires the target MPFR development package.")
+  endif()
+  list(APPEND _OMC_CMAKE_ARGS
+    "-DOMC_STUDIO_MPFR_INCLUDE_DIR:PATH=${_OMC_MPFR_INCLUDE_DIR}"
+    "-DOMC_STUDIO_MPFR_LIBRARY:FILEPATH=${_OMC_MPFR_LIBRARY}")
+endif()
+
 set(_OMC_SIMD_ARGS "")
 if(APPLE)
   set(_OMC_SIMD_ARGS
@@ -273,7 +328,7 @@ bambustudio_add_cmake_project(OpenMeshCraft
   COMMAND ${CMAKE_COMMAND} -E copy
     ${_OMC_DIR}/CMakeLists.txt.in
     <SOURCE_DIR>/CMakeLists.txt
-  COMMAND git apply --ignore-space-change
+  COMMAND patch -p1 --forward -i
     ${_OMC_DIR}/0001-reduce-compat.patch
   COMMAND ${CMAKE_COMMAND} -E copy
     ${_OMC_GEN_DIR}/external_CMakeLists.txt
@@ -289,8 +344,18 @@ bambustudio_add_cmake_project(OpenMeshCraft
     -DOMC_MASTER_PROJECT=OFF
     -DOMC_BUILD_PREDICATES_GENERATOR=OFF
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    ${_OMC_CMAKE_ARGS}
     ${_OMC_FORMAT_ARGS}
     ${_OMC_SIMD_ARGS}
+)
+
+ExternalProject_Add_Step(dep_OpenMeshCraft update_studio_root
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${_OMC_DIR}/CMakeLists.txt.in
+    <SOURCE_DIR>/CMakeLists.txt
+  DEPENDEES patch
+  DEPENDERS configure
+  DEPENDS ${_OMC_DIR}/CMakeLists.txt.in
 )
 
 if(MSVC)

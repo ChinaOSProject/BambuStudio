@@ -74,6 +74,15 @@ endif()
 
 add_subdirectory(src)
 
+find_path(_OMC_TBB_INCLUDE_DIR NAMES tbb/tbb.h
+  PATHS ${CMAKE_PREFIX_PATH}
+  PATH_SUFFIXES include
+  NO_DEFAULT_PATH)
+if(_OMC_TBB_INCLUDE_DIR)
+  target_include_directories(OpenMeshCraft BEFORE PUBLIC "${_OMC_TBB_INCLUDE_DIR}")
+endif()
+set_property(TARGET OpenMeshCraft PROPERTY NO_SYSTEM_FROM_IMPORTED TRUE)
+
 # ---- C ABI wrapper + install package (was bambu_studio_package.cmake) ----
 if(NOT TARGET OpenMeshCraft)
   message(FATAL_ERROR "OpenMeshCraft target is missing; cannot package boolean backend.")
