@@ -48,6 +48,9 @@
     "lightningcss-win32-x64-msvc": "^1.32.0"
   },
   "pnpm": {
+    "patchedDependencies": {
+      "@tailwindcss/oxide-wasm32-wasi@4.1.8": "patches/@tailwindcss__oxide-wasm32-wasi@4.1.8.patch"
+    },
     "supportedArchitectures": {
       "os": ["current", "wasi"],
       "cpu": ["current", "wasm32"]

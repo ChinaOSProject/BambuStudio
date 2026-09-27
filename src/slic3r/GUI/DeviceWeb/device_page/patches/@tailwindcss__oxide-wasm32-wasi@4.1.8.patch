@@ -1,0 +1,27 @@
+diff --git a/tailwindcss-oxide.wasi.cjs b/tailwindcss-oxide.wasi.cjs
+index 2367b4402c7ba8a72f21167df58cf29e717aaa54..f50c2e2146672f862f8a796a364074dc464adbb8 100644
+--- a/tailwindcss-oxide.wasi.cjs
++++ b/tailwindcss-oxide.wasi.cjs
+@@ -65,6 +65,22 @@
+     worker.onmessage = ({ data }) => {
+       __wasmCreateOnMessageForFsProxy(__nodeFs)(data)
+     }
++
++    const kPublicPort = Object.getOwnPropertySymbols(worker).find(s =>
++      s.toString().includes('kPublicPort')
++    )
++    if (kPublicPort) {
++      worker[kPublicPort].ref = () => {}
++    }
++
++    const kHandle = Object.getOwnPropertySymbols(worker).find(s =>
++      s.toString().includes('kHandle')
++    )
++    if (kHandle) {
++      worker[kHandle].ref = () => {}
++    }
++
++    worker.unref()
+     return worker
+   },
+   overwriteImports(importObject) {
